@@ -1,0 +1,2 @@
+# Hive
+sample hive tables
