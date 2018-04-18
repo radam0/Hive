@@ -25,3 +25,14 @@ OLAP – Online Analytical Processing Systems
 Hive is best suited for OLAP 
 
 Hive doesn’t support OLTP.  If you need OLTP features, you should consider NoSQL databases like HBase, Cassandra and DynamoDB, if you are using Amazon EMR / EC2
+
+
+Hive can runs in the following modes
+	i)  Local mode (Default)
+	ii) Distributed mode
+	iii)Pseudo-distributed mode
+
+All Linux commands can be performed on hive using ! before the command.
+
+All configuration files related to hive will be present in cd /etc /hive/conf
+
