@@ -76,6 +76,9 @@ the Hive to drop the tables in the database first
 --Dropping the database
 DROP DATABASE IF EXISTS financials CASCADE;
 
+--Dropping the table
+DROP TABLE IF EXISTS tablename;
+
 Using the RESTRICT keyword instead of CASCADE is equivalent to the default behavior, where existing tables must be dropped before dropping the database. When a database is dropped, its directory is also deleted
 
 --To display the detailed table information
