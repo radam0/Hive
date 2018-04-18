@@ -1,1 +1,93 @@
+--To enter into hive terminal
+hive;
+
+--To list the databases
+SHOW DATABASES;
+
+--To create the database
+CREATE DATABASE IF NOT EXISTS databasename COMMENT  ‘database related to something’;
+
+The default database is default
+
+--To enter the database
+USE Databasename;
+
+--To lists the database starts with b
+SHOW DATABASES LIKE 'b.*';
+
+--To display the current database
+SET hive.cli.print.current.db=true;
+
+--To print the column headers
+SET hive.cli.print.header=true;
+
+--To display the tables
+SHOW TABLES;
+
+--To create the table
+CREATE TABLE tablename (attribute DATATYPE)
+COMMENT ‘Description of the table’
+TBLPROPERTIES (‘creator’=’nikhil’, ‘created_at’=’2018-23-03 10:00:00’, …);
+
+TBLPROPERTIES can be used to express essential metadata about the database connection.
+
+--Copy the schema (but not the data) of an existing table
+CREATE TABLE IF NOT EXISTS databasename.table2
+LIKE databasename.table;
+
+Ex:
+CREATE TABLE IF NOT EXISTS mydb.employees2
+LIKE mydb.employees;
+
+
+--If we aren’t in the same database, we can still list the tables in that database:
+SHOW TABLES IN mydb;
+
+--To Rename the table
+ALTER TABLE oldtablename RENAME TO newtablename;
+
+--To load the data stored on HDFS
+LOAD DATA INPATH ‘/hdfs path/file1.txt’ INTO TABLE tablename;
+
+--To load the data stored on LFS
+LOAD DATA LOCAL INPATH ‘/LFS path/file1.txt’ INTO TABLE tablename;
+
+--To display the table schema
+DESCRIBE tablename;
+
+--To view the directory location of the database
+DESCRIBE DATABASE databasename;
+
+If you use local mode, the path will be file:///user/hive/warehouse/database.db.
+Pseudo-distributed mode, the path will be hdfs://master-slave/user/hive/warehouse/database.db.
+
+
+--Adding properties to the database
+CREATE DATABASE IF NOT EXISTS databasename
+WITH DBPROPERTIES ('creator' = 'Nikhil', 'date' = '2018-01-04');
+
+--To view the database properties
+DESCRIBE DATABASE EXTENDED databasename;
+
+--By default, Hive won’t permit you to drop a database if it contains tables. You can either
+drop the tables first or append the CASCADE keyword to the command, which will cause
+the Hive to drop the tables in the database first
+
+--Dropping the database
+DROP DATABASE IF EXISTS financials CASCADE;
+
+Using the RESTRICT keyword instead of CASCADE is equivalent to the default behavior, where existing tables must be dropped before dropping the database. When a database is dropped, its directory is also deleted
+
+--To display the detailed table information
+DESCRIBE EXTENDED tablename;
+
+--To display table information more in human readable format
+DESCRIBE FORMATTED tablename;
+
+--To display all the records in a table
+SELECT * FROM tablename;
+
+--To display the limited number of records
+SELECT * FROM tablename LIMIT 5;
+
 
