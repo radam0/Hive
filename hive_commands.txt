@@ -93,4 +93,5 @@ SELECT * FROM tablename;
 --To display the limited number of records
 SELECT * FROM tablename LIMIT 5;
 
-
+--To see the DDL statement of table
+SHOW CREATE TABLE tablename;
