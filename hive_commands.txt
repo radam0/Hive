@@ -95,3 +95,24 @@ SELECT * FROM tablename LIMIT 5;
 
 --To see the DDL statement of table
 SHOW CREATE TABLE tablename;
+
+--To create a view
+CREATE VIEW viewname AS sql query;
+
+--To create the index
+CREATE INDEX indexname ON TABLE tablename (columnname) AS ‘COMPACT’ WITH DEFERRED REBUILD;
+or
+CREATE INDEX indexname ON TABLE tablename (columnname) AS ‘BITMAP’ WITH DEFERRED REBUILD;
+
+If you specified WITH DEFERRED REBUILD, the new index starts empty. At any time, the index can be built the first time or rebuilt using the ALTER INDEX statement.
+
+--To show an index
+SHOW FORMATTED INDEX ON tablename;
+
+--Dropping an index
+DROP INDEX IF EXISTS indexname ON TABLE tablename;
+
+--Tuning
+EXPLAIN SELECT * FROM tablename;
+EXPLAIN EXTENDED SELECT * FROM tablename;
+
