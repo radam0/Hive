@@ -117,6 +117,16 @@ BitMap : when data cardinality (uniqueness of data values in a table, Example ge
 B-Tree (default) : when data cardinality is high (uniqueness of data values in a table example, id will have many)a, we use B-Tree
 
 
+--Other File Formats and Compression
+i)GZip Compression
+ii)BZip2 Compression
+iii)Snappy Compression
+iv)LZO Compression
+
+BZip2 creates the smallest compressed output, but with the highest CPU overhead.
+GZip is next in terms of compressed size versus speed. Hence, if disk space utilization and I/O overhead are concerns, both are attractive choices.
+LZO and Snappy create larger files but are much faster, especially for decompression.
+They are good choices if disk space and I/O overhead are less important than rapid decompression of frequently read data.
 
 
 
