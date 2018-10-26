@@ -192,3 +192,277 @@ ATTRIBUTE1	VARCHAR2 (150 Byte)
   `attribute28` string, 
   `attribute29` string, 
   `attribute30` string)
+
+
+
+
+======
+
+hive
+
+Hive/Pig is well suited for batch processing (ETL, Scheduled workloads)
+
+cat /etc/hive/conf // config files
+
+cat hive-log4j.properties
+
+
+
+hive(default)> set;  //displays all the properties
+
+hive warehouse directory  : base directory in HDFS
+====================================================
+set hive.metastore.warehouse.dir;
+
+set hive.execution.engine;
+
+
+set dfs.replication;   //to check the replication factor
+
+set dfs.replication=1 // changes
+
+
+.hiverc  // used to control behaviour of hive session
+
+set dfs.replication=2;
+set hive.execution.engine=tez;
+
+
+
+
+==================
+
+hive --hiveconf hive.execution.engine=mr   // while launching the hive also, we can specify the properties
+
+
+exit;  // to come out of hive
+
+
+
+
+to run spark in hive
+
+spark-sql --master --yarn
+
+
+
+June 12, 2018
+==================
+
+Hive DDL and DML
+
+
+
+set hive.metasore.warehouse.dir;
+
+
+upto 11g oracle is single tenant
+
+mysql is multi tenant 
+
+
+diff b/w hive and mysql
+===========================
+in hive, we dont have users
+in sql, we have users
+
+
+
+June 14, 2018
+==============
+
+ctask
+
+create
+table
+as
+select
+
+create table tablename as select * from another table;
+
+ctrlA is the null value(ASCII)
+
+
+
+serde is a file format to open a particular data
+
+
+3 types to load data into hive tables
+=====================================
+insert individual columns
+loading data from 1 table to another
+using load
+
+
+
+loading file from lFS to Hive using dfs -put (metadata info is not updated)
+
+Load (metadata is updated)
+
+
+using load 
+directly put that files into hdfs
+
+All the metadata info is present in NameNode
+
+Datanode contains files, blocks associated with files(block location) is called metadata
+
+
+
+try to load pdf data into table using LOAD
+
+
+BEELINE/HUE EDITOR
+
+
+truncate only deletes the data
+ex: truncate table <tablename>
+
+
+usecase
+===========
+input data is in text form
+but we are supposed to store it in ORC format
+
+Now we have to transform the text to ORC
+
+
+Solution:
+
+Create a stage table (which can accomdate the incoming data)
+Load data into stage table
+Apply transformations
+(SELECT * FROM orders_orc select * from orders_stage;)
+	To apply transformation, we use SELECT
+
+then copy the data into table
+
+Transformations can be done using hive query, MR, Spark, Pig
+
+first load data into order_stage as text format
+next load into orders_orc as select * from orders_Stage by mentioning orc format
+===========
+
+INSERT INTO <tablename>
+INSERT OVERWRITE 
+
+into is for append
+overwrite is for overwriting
+
+
+LOAD is used whenever the data is consistent
+if it is not consistent, it will be a 2 step process
+create stage table and load the data
+apply transformation and send the data to the table
+
+
+
+=================================================
+
+partitioning
+
+
+
+Dynamic partition
+
+
+
+June 18, 2018
+===============
+
+Dynamic Partitioning
+
+set hive.exec.dynamic.partition.mode=nonstrict;
+
+set hive.metastore.warehouse.dir;  	# Shows the datawarehouse directory`	
+
+Differences b/w managed and external tables
+
+managed table - managed by hive
+
+droping external table- all schema is deleted but not data. If we use select * from table it throws table not found
+
+managed table with location
+managed table without location ----- commonly used scenario
+external table with location  ----- commonly used scenario
+external table without location 
+
+
+Business case
+==============
+
+create external table for staging the data
+query external tables and insert into final tables
+
+
+
+Bucketing
+==========
+
+Partitioning in RDBMS
+---------------------
+	List Partitioning
+	Hash
+	Range
+
+Partitioning in Hive
+---------------------
+	List
+	Hash (it can be achieved by hash i.e., using clustering)
+
+Hashcode : If it integer, typically it will return the same value as hashcode
+		   If it is non-integer, it returns 
+
+
+Bucketing
+=========
+No of buckets - ex 4
+Compute the hash code
+Apply the mod algorithm with 4
+whatever the remainder is put into the bucket (that bucket is called as hash bucket)
+
+
+
+CREATE TABLE orders_bucketed (
+order_id INT,
+order_date STRING,
+order_customer_id INT,
+order_status STRING)
+CLUSTERED BY (order_status) INTO 4 BUCKETS
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ',';
+
+
+INSERT INTO TABLE orders_bucketed
+SELECT * 
+FROM orders01;
+
+
+Here numFiles=1 
+Do you think bucketing is done ?
+No
+
+we have to set a property file
+SET hive.enforce.bucketing=true;
+
+TRUNCATE TABLE orders_bucketed;
+
+INSERT INTO TABLE orders_bucketed
+SELECT * 
+FROM orders01;
+
+
+
+================================================================================
+
+
+
+
+
+SET hive.enforce.bucketing=true;
+
+If you forgot the property we can find it using the following command
+
+hive -e "set;"|grep bucket
+
+hive -e "set;"|grep partition  // find properties related to partitioning
