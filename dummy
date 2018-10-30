@@ -466,3 +466,16 @@ If you forgot the property we can find it using the following command
 hive -e "set;"|grep bucket
 
 hive -e "set;"|grep partition  // find properties related to partitioning
+
+
+
+
+=============
+
+
+select FIRST_VALUE(id) OVER(PARTITION BY dep_name ORDER BY salary,age RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) first_value_test from tv_retaildb.employee
+Working order by 2 colunms
+
+select FIRST_VALUE(CASE WHEN id is not null THEN id END ) OVER(PARTITION BY dep_name ORDER BY salary,age RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) first_value_test from tv_retaildb.employee
+
+ingore null use case statement
