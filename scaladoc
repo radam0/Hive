@@ -1,0 +1,261 @@
+
+val products = spark.read.json("/public/retail_db_json/products")
+
+products.show				// Shows displays only 20 records
+							// To view full records, use foreach(println)
+
++-------------------+-------------------+----------+--------------------+--------------------+-------------+
+|product_category_id|product_description|product_id|       product_image|        product_name|product_price|
++-------------------+-------------------+----------+--------------------+--------------------+-------------+
+|                  2|                   |         1|http://images.acm...|Quest Q64 10 FT. ...|        59.98|
+|                  2|                   |         2|http://images.acm...|Under Armour Men'...|       129.99|
+|                  2|                   |         3|http://images.acm...|Under Armour Men'...|        89.99|
+|                  2|                   |         4|http://images.acm...|Under Armour Men'...|        89.99|
+|                  2|                   |         5|http://images.acm...|Riddell Youth Rev...|       199.99|
+|                  2|                   |         6|http://images.acm...|Jordan Men's VI R...|       134.99|
+|                  2|                   |         7|http://images.acm...|Schutt Youth Recr...|        99.99|
+|                  2|                   |         8|http://images.acm...|Nike Men's Vapor ...|       129.99|
+|                  2|                   |         9|http://images.acm...|Nike Adult Vapor ...|         50.0|
+|                  2|                   |        10|http://images.acm...|Under Armour Men'...|       129.99|
+|                  2|                   |        11|http://images.acm...|Fitness Gear 300 ...|       209.99|
+|                  2|                   |        12|http://images.acm...|Under Armour Men'...|       139.99|
+|                  2|                   |        13|http://images.acm...|Under Armour Men'...|        89.99|
+|                  2|                   |        14|http://images.acm...|Quik Shade Summit...|       199.99|
+|                  2|                   |        15|http://images.acm...|Under Armour Kids...|        59.99|
+|                  2|                   |        16|http://images.acm...|Riddell Youth 360...|       299.99|
+|                  2|                   |        17|http://images.acm...|Under Armour Men'...|       129.99|
+|                  2|                   |        18|http://images.acm...|Reebok Men's Full...|        29.97|
+|                  2|                   |        19|http://images.acm...|Nike Men's Finger...|       124.99|
+|                  2|                   |        20|http://images.acm...|Under Armour Men'...|       129.99|
++-------------------+-------------------+----------+--------------------+--------------------+-------------+
+
+// To view the product category id in ascending order and within each product id get the product price in descending order
+
+scala> products.orderBy($"product_category_id",$"product_price".desc).show
++-------------------+-------------------+----------+--------------------+--------------------+-------------+
+|product_category_id|product_description|product_id|       product_image|        product_name|product_price|
++-------------------+-------------------+----------+--------------------+--------------------+-------------+
+|                  2|                   |        16|http://images.acm...|Riddell Youth 360...|       299.99|
+|                  2|                   |        11|http://images.acm...|Fitness Gear 300 ...|       209.99|
+|                  2|                   |         5|http://images.acm...|Riddell Youth Rev...|       199.99|
+|                  2|                   |        14|http://images.acm...|Quik Shade Summit...|       199.99|
+|                  2|                   |        12|http://images.acm...|Under Armour Men'...|       139.99|
+|                  2|                   |        23|http://images.acm...|Under Armour Men'...|       139.99|
+|                  2|                   |         6|http://images.acm...|Jordan Men's VI R...|       134.99|
+|                  2|                   |        20|http://images.acm...|Under Armour Men'...|       129.99|
+|                  2|                   |         8|http://images.acm...|Nike Men's Vapor ...|       129.99|
+|                  2|                   |        17|http://images.acm...|Under Armour Men'...|       129.99|
+|                  2|                   |         2|http://images.acm...|Under Armour Men'...|       129.99|
+|                  2|                   |        10|http://images.acm...|Under Armour Men'...|       129.99|
+|                  2|                   |        19|http://images.acm...|Nike Men's Finger...|       124.99|
+|                  2|                   |         7|http://images.acm...|Schutt Youth Recr...|        99.99|
+|                  2|                   |         3|http://images.acm...|Under Armour Men'...|        89.99|
+|                  2|                   |         4|http://images.acm...|Under Armour Men'...|        89.99|
+|                  2|                   |        13|http://images.acm...|Under Armour Men'...|        89.99|
+|                  2|                   |        24|http://images.acm...|Elevation Trainin...|        79.99|
+|                  2|                   |        15|http://images.acm...|Under Armour Kids...|        59.99|
+|                  2|                   |         1|http://images.acm...|Quest Q64 10 FT. ...|        59.98|
++-------------------+-------------------+----------+--------------------+--------------------+-------------+
+
+
+Data frame operations supports analytical functions
+
+To retrieve top 5 product prices, we use analytical functions
+
+//SQL - we usually write the following way
+
+select * from ( select p.*, rank() over (partition by product_category_id order by product_price desc) rnk from ...some tablename )as q where rnk <= 5;
+
+
+APIs related to analytical functions are present in the following package
+
+scala> import org.apache.spark.sql.expressions.
+Aggregator                 ReduceAggregator               UserDefinedFunction   WindowSpec   scalalang
+MutableAggregationBuffer   UserDefinedAggregateFunction   Window                javalang
+
+scala> import org.apache.spark.sql.expressions._
+import org.apache.spark.sql.expressions._
+
+// Spec is of datatype
+
+scala> val spec = Window.partitionBy("product_category_id").orderBy("product_price")
+spec: org.apache.spark.sql.expressions.WindowSpec = org.apache.spark.sql.expressions.WindowSpec@5b9fe17d
+
+scala> products.select(rank() over spec).show
++---------------------------------------------------------------------------------------------------------+
+|RANK() OVER (PARTITION BY product_category_id ORDER BY product_price ASC NULLS FIRST unspecifiedframe$())|
++---------------------------------------------------------------------------------------------------------+
+|                                                                                                        1|
+|                                                                                                        2|
+|                                                                                                        2|
+|                                                                                                        4|
+|                                                                                                        4|
+|                                                                                                        4|
+|                                                                                                        7|
+|                                                                                                        8|
+|                                                                                                        9|
+|                                                                                                        9|
+|                                                                                                        9|
+|                                                                                                        9|
+|                                                                                                        9|
+|                                                                                                       14|
+|                                                                                                       15|
+|                                                                                                       16|
+|                                                                                                       17|
+|                                                                                                       18|
+|                                                                                                       18|
+|                                                                                                       18|
++---------------------------------------------------------------------------------------------------------+
+
+
+// To select all the column names
+
+scala> products.select(col("*"), rank() over spec).show
++-------------------+-------------------+----------+--------------------+--------------------+-------------+---------------------------------------------------------------------------------------------------------+
+|product_category_id|product_description|product_id|       product_image|        product_name|product_price|RANK() OVER (PARTITION BY product_category_id ORDER BY product_price ASC NULLS FIRST unspecifiedframe$())|
++-------------------+-------------------+----------+--------------------+--------------------+-------------+---------------------------------------------------------------------------------------------------------+
+|                 26|                   |       568|http://images.acm...|adidas Youth Germ...|         18.0|                                                                                                                       1|
+|                 26|                   |       550|http://images.acm...|adidas Men's 2014...|         20.0|                                                                                                                       2|
+|                 26|                   |       554|http://images.acm...|adidas Men's 2014...|         20.0|                                                                                                                       2|
+|                 26|                   |       561|http://images.acm...|adidas Men's 2014...|         22.0|                                                                                                                       4|
+|                 26|                   |       562|http://images.acm...|adidas Men's 2014...|         22.0|                                                                                                                       4|
+|                 26|                   |       563|http://images.acm...|adidas Men's Germ...|         22.0|                                                                                                                       4|
+|                 26|                   |       553|http://images.acm...|adidas Men's 2014...|         24.0|                                                                                                                       7|
+|                 26|                   |       567|http://images.acm...|adidas Men's Germ...|         25.0|                                                                                                                       8|
+|                 26|                   |       555|http://images.acm...|"adidas Original ...|         28.0|                                                                                                                       9|
+|                 26|                   |       556|http://images.acm...|"adidas Original ...|         28.0|                                                                                                                       9|
+|                 26|                   |       557|http://images.acm...|adidas Men's 2014...|         28.0|                                                                                                                       9|
+|                 26|                   |       558|http://images.acm...|adidas Men's 2014...|         28.0|                                                                                                                       9|
+|                 26|                   |       559|http://images.acm...|adidas Women's 20...|         28.0|                                                                                                                       9|
+|                 26|                   |       564|http://images.acm...|Nike Men's Deutsc...|         30.0|                                                                                                                      14|
+|                 26|                   |       572|http://images.acm...|TYR Boys' Team Di...|        39.99|                                                                                                                      15|
+|                 26|                   |       570|http://images.acm...|adidas Men's Germ...|         50.0|                                                                                                                      16|
+|                 26|                   |       571|http://images.acm...|TYR Boys' Venom B...|        51.99|                                                                                                                      17|
+|                 26|                   |       549|http://images.acm...|Lotto Men's Zhero...|        59.99|                                                                                                                      18|
+|                 26|                   |       551|http://images.acm...|Lotto Men's Zhero...|        59.99|                                                                                                                      18|
+|                 26|                   |       552|http://images.acm...|Lotto Men's Zhero...|        59.99|                                                                                                                      18|
++-------------------+-------------------+----------+--------------------+--------------------+-------------+---------------------------------------------------------------------------------------------------------+
+
+
+// or 
+// to select all columns use API called withColumn
+// Here rnk is the alias name 
+
+scala> products.withColumn("rnk", rank() over spec).show
++-------------------+-------------------+----------+--------------------+--------------------+-------------+---+
+|product_category_id|product_description|product_id|       product_image|        product_name|product_price|rnk|
++-------------------+-------------------+----------+--------------------+--------------------+-------------+---+
+|                 26|                   |       568|http://images.acm...|adidas Youth Germ...|         18.0|  1|
+|                 26|                   |       550|http://images.acm...|adidas Men's 2014...|         20.0|  2|
+|                 26|                   |       554|http://images.acm...|adidas Men's 2014...|         20.0|  2|
+|                 26|                   |       561|http://images.acm...|adidas Men's 2014...|         22.0|  4|
+|                 26|                   |       562|http://images.acm...|adidas Men's 2014...|         22.0|  4|
+|                 26|                   |       563|http://images.acm...|adidas Men's Germ...|         22.0|  4|
+|                 26|                   |       553|http://images.acm...|adidas Men's 2014...|         24.0|  7|
+|                 26|                   |       567|http://images.acm...|adidas Men's Germ...|         25.0|  8|
+|                 26|                   |       555|http://images.acm...|"adidas Original ...|         28.0|  9|
+|                 26|                   |       556|http://images.acm...|"adidas Original ...|         28.0|  9|
+|                 26|                   |       557|http://images.acm...|adidas Men's 2014...|         28.0|  9|
+|                 26|                   |       558|http://images.acm...|adidas Men's 2014...|         28.0|  9|
+|                 26|                   |       559|http://images.acm...|adidas Women's 20...|         28.0|  9|
+|                 26|                   |       564|http://images.acm...|Nike Men's Deutsc...|         30.0| 14|
+|                 26|                   |       572|http://images.acm...|TYR Boys' Team Di...|        39.99| 15|
+|                 26|                   |       570|http://images.acm...|adidas Men's Germ...|         50.0| 16|
+|                 26|                   |       571|http://images.acm...|TYR Boys' Venom B...|        51.99| 17|
+|                 26|                   |       549|http://images.acm...|Lotto Men's Zhero...|        59.99| 18|
+|                 26|                   |       551|http://images.acm...|Lotto Men's Zhero...|        59.99| 18|
+|                 26|                   |       552|http://images.acm...|Lotto Men's Zhero...|        59.99| 18|
++-------------------+-------------------+----------+--------------------+--------------------+-------------+---+
+
+
+
+//Here we didn't sort the data. 
+// product_price is sorted by descending order
+
+scala> val spec = Window.partitionBy("product_category_id").orderBy($"product_price".desc)
+spec: org.apache.spark.sql.expressions.WindowSpec = org.apache.spark.sql.expressions.WindowSpec@3ec36e2f
+
+
+// If you want to give alias name to rank,
+
+scala> products.select(col("*"), rank() over spec alias "rnk").show
++-------------------+-------------------+----------+--------------------+--------------------+-------------+---+
+|product_category_id|product_description|product_id|       product_image|        product_name|product_price|rnk|
++-------------------+-------------------+----------+--------------------+--------------------+-------------+---+
+|                 26|                   |       566|http://images.acm...|adidas Men's Germ...|         90.0|  1|
+|                 26|                   |       569|http://images.acm...|adidas Men's Germ...|         90.0|  1|
+|                 26|                   |       560|http://images.acm...|adidas Men's 2014...|         85.0|  3|
+|                 26|                   |       565|http://images.acm...|adidas Youth Germ...|         70.0|  4|
+|                 26|                   |       549|http://images.acm...|Lotto Men's Zhero...|        59.99|  5|
+|                 26|                   |       551|http://images.acm...|Lotto Men's Zhero...|        59.99|  5|
+|                 26|                   |       552|http://images.acm...|Lotto Men's Zhero...|        59.99|  5|
+|                 26|                   |       571|http://images.acm...|TYR Boys' Venom B...|        51.99|  8|
+|                 26|                   |       570|http://images.acm...|adidas Men's Germ...|         50.0|  9|
+|                 26|                   |       572|http://images.acm...|TYR Boys' Team Di...|        39.99| 10|
+|                 26|                   |       564|http://images.acm...|Nike Men's Deutsc...|         30.0| 11|
+|                 26|                   |       555|http://images.acm...|"adidas Original ...|         28.0| 12|
+|                 26|                   |       556|http://images.acm...|"adidas Original ...|         28.0| 12|
+|                 26|                   |       557|http://images.acm...|adidas Men's 2014...|         28.0| 12|
+|                 26|                   |       558|http://images.acm...|adidas Men's 2014...|         28.0| 12|
+|                 26|                   |       559|http://images.acm...|adidas Women's 20...|         28.0| 12|
+|                 26|                   |       567|http://images.acm...|adidas Men's Germ...|         25.0| 17|
+|                 26|                   |       553|http://images.acm...|adidas Men's 2014...|         24.0| 18|
+|                 26|                   |       561|http://images.acm...|adidas Men's 2014...|         22.0| 19|
+|                 26|                   |       562|http://images.acm...|adidas Men's 2014...|         22.0| 19|
++-------------------+-------------------+----------+--------------------+--------------------+-------------+---+
+
+
+
+// Now the data is sorted by ascending order by product_category_id and ascending order by rank
+
+scala> products.select(col("*"), rank() over spec alias "rnk").orderBy("product_category_id", "rnk").show
++-------------------+-------------------+----------+--------------------+--------------------+-------------+---+
+|product_category_id|product_description|product_id|       product_image|        product_name|product_price|rnk|
++-------------------+-------------------+----------+--------------------+--------------------+-------------+---+
+|                  2|                   |        16|http://images.acm...|Riddell Youth 360...|       299.99|  1|
+|                  2|                   |        11|http://images.acm...|Fitness Gear 300 ...|       209.99|  2|
+|                  2|                   |         5|http://images.acm...|Riddell Youth Rev...|       199.99|  3|
+|                  2|                   |        14|http://images.acm...|Quik Shade Summit...|       199.99|  3|
+|                  2|                   |        23|http://images.acm...|Under Armour Men'...|       139.99|  5|
+|                  2|                   |        12|http://images.acm...|Under Armour Men'...|       139.99|  5|
+|                  2|                   |         6|http://images.acm...|Jordan Men's VI R...|       134.99|  7|
+|                  2|                   |        20|http://images.acm...|Under Armour Men'...|       129.99|  8|
+|                  2|                   |         8|http://images.acm...|Nike Men's Vapor ...|       129.99|  8|
+|                  2|                   |         2|http://images.acm...|Under Armour Men'...|       129.99|  8|
+|                  2|                   |        17|http://images.acm...|Under Armour Men'...|       129.99|  8|
+|                  2|                   |        10|http://images.acm...|Under Armour Men'...|       129.99|  8|
+|                  2|                   |        19|http://images.acm...|Nike Men's Finger...|       124.99| 13|
+|                  2|                   |         7|http://images.acm...|Schutt Youth Recr...|        99.99| 14|
+|                  2|                   |         4|http://images.acm...|Under Armour Men'...|        89.99| 15|
+|                  2|                   |         3|http://images.acm...|Under Armour Men'...|        89.99| 15|
+|                  2|                   |        13|http://images.acm...|Under Armour Men'...|        89.99| 15|
+|                  2|                   |        24|http://images.acm...|Elevation Trainin...|        79.99| 18|
+|                  2|                   |        15|http://images.acm...|Under Armour Kids...|        59.99| 19|
+|                  2|                   |         1|http://images.acm...|Quest Q64 10 FT. ...|        59.98| 20|
++-------------------+-------------------+----------+--------------------+--------------------+-------------+---+
+
+
+// To get top 5 products
+
+scala> products.select(col("*"), rank() over spec alias "rnk").where("rnk <= 5").orderBy("product_category_id", "rnk").show
+
+|product_category_id|product_description|product_id|       product_image|        product_name|product_price|rnk|
++-------------------+-------------------+----------+--------------------+--------------------+-------------+---+
+|                  2|                   |        16|http://images.acm...|Riddell Youth 360...|       299.99|  1|
+|                  2|                   |        11|http://images.acm...|Fitness Gear 300 ...|       209.99|  2|
+|                  2|                   |        14|http://images.acm...|Quik Shade Summit...|       199.99|  3|
+|                  2|                   |         5|http://images.acm...|Riddell Youth Rev...|       199.99|  3|
+|                  2|                   |        12|http://images.acm...|Under Armour Men'...|       139.99|  5|
+|                  2|                   |        23|http://images.acm...|Under Armour Men'...|       139.99|  5|
+|                  3|                   |        40|http://images.acm...|Quik Shade Summit...|       199.99|  1|
+|                  3|                   |        32|http://images.acm...|PUMA Men's evoPOW...|       189.99|  2|
+|                  3|                   |        35|http://images.acm...|adidas Brazuca 20...|       159.99|  3|
+|                  3|                   |        48|http://images.acm...|adidas Brazuca Fi...|       159.99|  3|
+|                  3|                   |        46|http://images.acm...|Quest 12' x 12' D...|       149.99|  5|
+|                  4|                   |        66|http://images.acm...|  SOLE F85 Treadmill|      1799.99|  1|
+|                  4|                   |        60|http://images.acm...| SOLE E25 Elliptical|       999.99|  2|
+|                  4|                   |        71|http://images.acm...|Diamondback Adult...|       349.98|  3|
+|                  4|                   |        68|http://images.acm...|Diamondback Adult...|       309.99|  4|
+|                  4|                   |        58|http://images.acm...|Diamondback Boys'...|       299.99|  5|
++-------------------+-------------------+----------+--------------------+--------------------+-------------+---+
+
