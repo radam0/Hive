@@ -1,0 +1,242 @@
+Query_A_1=SELECT \
+ord_id, \
+ord_juln_d, \
+ord_stat_c, \
+cusp_n, \
+ord_acn_c, \
+LAST_VALUE(cusp_n) OVER(PARTITION BY ord_id,ord_juln_d,fbsi_brch_c,fbsi_base_c ORDER BY cap_tmst,ord_audt_id RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING ) AS last_cusp_n, \
+sec_ty_c, \
+fbsi_brch_c, \
+fbsi_base_c, \
+replaced_ord_id, \
+rplc_cncl_ord_id, \
+cncl_ord_id, \
+eca_prcs_n, \
+eca_orig_prcs_n, \
+eca_orig_ord_n, \
+ent_rp_usr_id, \
+cap_tmst, \
+signon_rp_c, \
+ord_audt_id, \
+part_n, \
+multi_co_n,\
+FIRST_VALUE(CASE ent_rp_usr_id IS NOT NULL THEN ent_rp_usr_id ) OVER(PARTITION BY ord_id,ord_juln_d,fbsi_brch_c,fbsi_base_c ORDER BY cap_tmst,ord_audt_id RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING ) first_ent_rp_usr_id, \
+FIRST_VALUE(signon_rp_c) OVER(PARTITION BY ord_id,ord_juln_d,fbsi_brch_c,fbsi_base_c ORDER BY cap_tmst,ord_audt_id RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )first_signon_rp_c, \
+LAST_VALUE(symb_c) OVER(PARTITION BY ord_id,ord_juln_d,fbsi_brch_c,fbsi_base_c ORDER BY cap_tmst,ord_audt_id RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING ) last_symb_c, \
+LAST_VALUE(lmtp_a) OVER(PARTITION BY ord_id,ord_juln_d,fbsi_brch_c,fbsi_base_c ORDER BY cap_tmst,ord_audt_id RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING ) last_lmtp_a, \
+LAST_VALUE(tt_exec_q) OVER(PARTITION BY ord_id,ord_juln_d,fbsi_brch_c,fbsi_base_c ORDER BY cap_tmst,ord_audt_id RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING ) last_tt_exec_q, \
+LAST_VALUE(avg_exec_prc_a) OVER(PARTITION BY ord_id,ord_juln_d,fbsi_brch_c,fbsi_base_c ORDER BY cap_tmst,ord_audt_id RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING ) last_avg_exec_prc_a, \
+ROW_NUMBER() OVER(PARTITION BY ord_id,ord_juln_d,fbsi_brch_c,fbsi_base_c ORDER BY cap_tmst,ord_audt_id ) rn \
+FROM JobSupport.stg_oroa_audt_orders \
+
+Query_A_2_1=SELECT \
+ord_id, \
+ord_juln_d, \
+ord_stat_c, \
+cusp_n, \
+ord_acn_c, \
+sec_ty_c, \
+fbsi_brch_c, \
+fbsi_base_c, \
+replaced_ord_id, \
+rplc_cncl_ord_id, \
+cncl_ord_id, \
+eca_prcs_n, \
+eca_orig_prcs_n, \
+eca_orig_ord_n, \
+ent_rp_usr_id, \
+cap_tmst, \
+signon_rp_c, \
+ord_audt_id, \
+part_n, \
+multi_co_n, \
+symb_c, \
+lmtp_a, \
+tt_exec_q, \
+avg_exec_prc_a \
+FROM JobSupport.stg_oroa_audt_orders \
+
+Query_A_2=SELECT \
+ord_id, \
+ord_juln_d, \
+ord_stat_c, \
+cusp_n, \
+ord_acn_c, \
+LAST_VALUE(cusp_n) OVER(PARTITION BY ord_id,ord_juln_d,fbsi_brch_c,fbsi_base_c ORDER BY cap_tmst,ord_audt_id RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING ) AS last_cusp_n, \
+sec_ty_c, \
+fbsi_brch_c, \
+fbsi_base_c, \
+replaced_ord_id, \
+nvl(rplc_cncl_ord_id,'00000') AS rplc_cncl_ord_id, \
+cncl_ord_id, \
+eca_prcs_n, \
+eca_orig_prcs_n, \
+eca_orig_ord_n, \
+ent_rp_usr_id, \
+cap_tmst, \
+signon_rp_c, \
+ord_audt_id, \
+part_n, \
+multi_co_n, \
+FIRST_VALUE(ent_rp_usr_id) OVER(PARTITION BY ord_id,ord_juln_d,fbsi_brch_c,fbsi_base_c ORDER BY cap_tmst,ord_audt_id RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING ) first_ent_rp_usr_id, \
+FIRST_VALUE(signon_rp_c) OVER(PARTITION BY ord_id,ord_juln_d,fbsi_brch_c,fbsi_base_c ORDER BY cap_tmst,ord_audt_id RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING ) first_signon_rp_c, \
+LAST_VALUE(symb_c) OVER(PARTITION BY ord_id,ord_juln_d,fbsi_brch_c,fbsi_base_c ORDER BY cap_tmst,ord_audt_id RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING ) last_symb_c, \
+LAST_VALUE(lmtp_a)OVER(PARTITION BY ord_id,ord_juln_d,fbsi_brch_c,fbsi_base_c ORDER BY cap_tmst,ord_audt_id RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING ) last_lmtp_a, \
+LAST_VALUE(tt_exec_q) OVER(PARTITION BY ord_id,ord_juln_d,fbsi_brch_c,fbsi_base_c ORDER BY cap_tmst,ord_audt_id RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING ) last_tt_exec_q, \
+LAST_VALUE(avg_exec_prc_a) OVER(PARTITION BY ord_id,ord_juln_d,fbsi_brch_c,fbsi_base_c ORDER BY cap_tmst,ord_audt_id RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING ) last_avg_exec_prc_a, \
+ROW_NUMBER() OVER(PARTITION BY ord_id,ord_juln_d,fbsi_brch_c,fbsi_base_c ORDER BY cap_tmst,ord_audt_id) rn \
+FROM MyQuery2TempView \
+
+
+Query_U1=select \
+ord_id, \
+ord_juln_d, \
+ord_stat_c, \
+cusp_n, \
+ord_acn_c, \
+last_cusp_n, \
+sec_ty_c, \
+fbsi_brch_c, \
+fbsi_base_c, \
+replaced_ord_id, \
+rplc_cncl_ord_id, \
+cncl_ord_id, \
+eca_prcs_n, \
+eca_orig_prcs_n, \
+eca_orig_ord_n, \
+ent_rp_usr_id, \
+cap_tmst, \
+signon_rp_c, \
+ord_audt_id, \
+part_n, \
+multi_co_n,\
+first_ent_rp_usr_id, \
+first_signon_rp_c, \
+last_symb_c, \
+last_lmtp_a, \
+last_tt_exec_q, \
+last_avg_exec_prc_a, \
+rn \
+from MyQuery1TempView \
+
+Query_U2=select \
+ord_id, \
+ord_juln_d, \
+ord_stat_c, \
+cusp_n, \
+ord_acn_c, \
+last_cusp_n, \
+sec_ty_c, \
+fbsi_brch_c, \
+fbsi_base_c, \
+replaced_ord_id, \
+rplc_cncl_ord_id, \
+cncl_ord_id, \
+eca_prcs_n, \
+eca_orig_prcs_n, \
+eca_orig_ord_n, \
+ent_rp_usr_id, \
+cap_tmst, \
+signon_rp_c, \
+ord_audt_id, \
+part_n, \
+multi_co_n,\
+first_ent_rp_usr_id, \
+first_signon_rp_c, \
+last_symb_c, \
+last_lmtp_a, \
+last_tt_exec_q, \
+last_avg_exec_prc_a, \
+rn \
+from MyQuery3TempView \
+
+Query_b_1_inner=SELECT \
+ord_id, \
+ord_juln_d, \
+ord_stat_c,	\
+fbsi_brch_c, \
+fbsi_base_c, \
+cap_tmst, \
+ord_audt_id, \
+signon_rp_c, \
+ent_rp_usr_id, \
+replaced_ord_id \
+FROM JobSupport.stg_oroa_audt_orders \
+
+Query_b_1_outer=SELECT \
+ord_id, \
+ord_juln_d, \
+ord_stat_c,	\
+fbsi_brch_c, i\
+fbsi_base_c, \
+MIN(cap_tmst) OVER(PARTITION BY ord_id,ord_juln_d,fbsi_brch_c,fbsi_base_c,signon_rp_c) AS min_cap_tmst, \
+MIN(ord_audt_id) OVER(PARTITION BY ord_id,ord_juln_d,fbsi_brch_c,fbsi_base_c,signon_rp_c) AS min_ord_audt_id, \
+cnt, \
+signon_rp_c, \
+ent_rp_usr_id \
+FROM MyInnerQueryTempView \
+
+
+Query_A_B=SELECT DISTINCT \
+a.ord_id, \
+a.ord_juln_d, \
+a.ord_stat_c, \
+a.last_cusp_n, \
+a.sec_ty_c, \
+a.ord_acn_c, \
+a.fbsi_brch_c, \
+a.fbsi_base_c, \
+a.replaced_ord_id, \
+a.rplc_cncl_ord_id, \
+a.cncl_ord_id, \
+a.eca_prcs_n, \
+a.eca_orig_prcs_n, \
+a.eca_orig_ord_n, \
+a.ent_rp_usr_id, \
+a.cap_tmst, \
+a.signon_rp_c, \
+a.ord_audt_id, \
+a.first_ent_rp_usr_id, \
+a.first_signon_rp_c, \
+a.last_symb_c, \
+a.last_lmtp_a, \
+b.min_ord_audt_id \
+from MyQueryTableATempView a LEFT OUTER JOIN MyQueryTableBTempView b \
+ON a.ord_id = b.ord_id \
+AND a.ord_juln_d = b.ord_juln_d \
+AND a.fbsi_brch_c = b.fbsi_brch_c \
+AND a.fbsi_base_c = b.fbsi_base_c \
+AND a.ord_stat_c = b.ord_stat_c \
+
+--AND a.first_signon_rp_c = b.first_signon_rp_c \
+
+Query_C_D=SELECT c.ord_id, \
+c.ord_juln_d, \
+c.ord_stat_c, \
+c.last_cusp_n, \
+c.sec_ty_c, \
+c.ord_acn_c, \
+c.fbsi_brch_c, \
+c.fbsi_base_c, \
+c.replaced_ord_id, \
+c.rplc_cncl_ord_id, \
+c.cncl_ord_id, \
+c.eca_prcs_n, \
+c.eca_orig_prcs_n, \
+c.eca_orig_ord_n, \
+c.ent_rp_usr_id, \
+c.cap_tmst, \
+c.signon_rp_c, \
+c.ord_audt_id, \
+c.first_ent_rp_usr_id, \
+c.first_signon_rp_c, \
+c.last_symb_c, \
+c.last_lmtp_a, \
+from MyQueryTableCTempView c LEFT OUTER JOIN JobSupport.stg_oroa_audt_orders d \
+ON c.ord_id=d.ord_id \
+AND c.ord_juln_d = d.ord_juln_d \
+AND c.fbsi_brch_c = d.fbsi_brch_c \
+AND c.fbsi_base_c = d.fbsi_base_c \
+
+--AND c.min_cap_tmst = d.min_cap_tmst
+--AND c.min_ord_audt_id = d.ord_audt_id
