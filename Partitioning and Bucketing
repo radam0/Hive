@@ -1,0 +1,503 @@
+hive> CREATE TABLE par_user(
+    > first_name STRING,
+    > last_name STRING,
+    > roll_no INT   
+    > )
+    > PARTITIONED BY (country STRING, state STRING)
+    > ROW FORMAT DELIMITED
+    > FIELDS TERMINATED BY ','
+    > STORED AS TEXTFILE;
+OK
+Time taken: 0.045 seconds
+
+
+
+hive> DESCRIBE FORMATTED par_user;
+OK
+# col_name              data_type               comment             
+                 
+first_name              string                  None                
+last_name               string                  None                
+roll_no                 int                     None                
+                 
+# Partition Information          
+# col_name              data_type               comment             
+                 
+country                 string                  None                
+state                   string                  None                
+                 
+# Detailed Table Information             
+Database:               hivedemo                 
+Owner:                  training                 
+CreateTime:             Tue Mar 20 11:46:40 PDT 2018     
+LastAccessTime:         UNKNOWN                  
+Protect Mode:           None                     
+Retention:              0                        
+Location:               hdfs://localhost/user/hive/warehouse/hivedemo.db/par_user        
+Table Type:             MANAGED_TABLE            
+Table Parameters:                
+        transient_lastDdlTime   1521571600          
+                 
+# Storage Information            
+SerDe Library:          org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe       
+InputFormat:            org.apache.hadoop.mapred.TextInputFormat         
+OutputFormat:           org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat       
+Compressed:             No                       
+Num Buckets:            -1                       
+Bucket Columns:         []                       
+Sort Columns:           []                       
+Storage Desc Params:             
+        field.delim             ,                   
+        serialization.format    ,                   
+Time taken: 0.074 seconds
+
+
+
+
+
+
+=====================
+Static Partitioning
+=====================
+1.Creating input files for partitioning:
+
+Input file - user_info
+
+
+Nikhil,Vemula,23
+Sunil,Dasari,32
+Nithin,Yarida,55
+Rakesh,Beesu,50
+
+
+Input file - user_info1
+
+Adam,Kumar,76
+Sohail,Tanvir,89
+Lovely,chadini,4
+
+
+
+2.Copying the input files:
+
+The above two input files need to be copied into table further subdivided into partitions divided on the basis of country and state.
+
+user_info data needs to be copied into the section of table having partitions as country = us and state = fl.
+
+
+hive> LOAD DATA LOCAL INPATH '/home/training/Desktop/hiveinputs/user_info'                    
+    > INTO TABLE par_user
+    > PARTITION (country='us', state='fl');                                                   
+Copying data from file:/home/training/Desktop/hiveinputs/user_info
+Copying file: file:/home/training/Desktop/hiveinputs/user_info
+Loading data to table hivedemo.par_user partition (country=us, state=fl)
+OK
+Time taken: 0.237 seconds
+
+
+user_info1 data needs to be copied into the section of table having partitions as country = ca and state = au.
+
+hive> LOAD DATA LOCAL INPATH '/home/training/Desktop/hiveinputs/user_info1'                   
+    > INTO TABLE par_user                                                   
+    > PARTITION (country='ca', state='au');                                 
+Copying data from file:/home/training/Desktop/hiveinputs/user_info1
+Copying file: file:/home/training/Desktop/hiveinputs/user_info1
+Loading data to table hivedemo.par_user partition (country=ca, state=au)
+OK
+Time taken: 0.265 seconds
+
+
+3.Retrieving the user information:
+
+
+hive> SELECT * FROM par_user 
+    > WHERE country='us' AND state='fl';
+OK
+Nikhil  Vemula  23      us      fl
+Sunil   Dasari  32      us      fl
+Nithin  Yarida  55      us      fl
+Rakesh  Beesu   50      us      fl
+Time taken: 0.213 seconds
+hive> SELECT * FROM par_user            
+    > WHERE country='ca' AND state='au';
+OK
+Adam    Kumar   76      ca      au
+Sohail  Tanvir  89      ca      au
+Lovely  chadini 4       ca      au
+Time taken: 0.164 seconds
+hive> 
+
+
+
+4. Browsing the HDFS
+
+[training@localhost ~]$ hadoop fs -ls /user/hive/warehouse/hivedemo.db/par_user  
+Found 2 items
+drwxr-xr-x   - training supergroup          0 2018-03-20 11:57 /user/hive/warehouse/hivedemo.db/par_user/country=ca
+drwxr-xr-x   - training supergroup          0 2018-03-20 11:56 /user/hive/warehouse/hivedemo.db/par_user/country=us
+
+
+[training@localhost ~]$ hadoop fs -ls /user/hive/warehouse/hivedemo.db/par_user/country=ca/state=au
+Found 1 items
+-rw-r--r--   1 training supergroup         48 2018-03-20 11:57 /user/hive/warehouse/hivedemo.db/par_user/country=ca/state=au/user_info1
+[training@localhost ~]$ hadoop fs -cat /user/hive/warehouse/hivedemo.db/par_user/country=ca/state=au/user_info1
+Adam,Kumar,76
+Sohail,Tanvir,89
+Lovely,chadini,4
+[training@localhost ~]$ 
+
+
+When to use dynamic partitioning:
+
+In static partitioning every partitioning needs to be backed with individual hive statement which is not feasible for large number of partitions as it will require writing of lot of hive statements.
+
+In that scenario dynamic partitioning is suggested as we can create as many number of partitions with single hive statement.
+
+This approach is explained in the below section:
+
+===================================
+Dynamic Partitioning
+===================================
+
+Steps for Dynamic partitioning:
+1.Creating tables:
+
+We need to create the partitioned table par_user as shown below.
+
+This table will be populated with the contents from table user1 and partitions will be created based on country and state.
+
+Now, create a new table named user1 with all the fields of par_user
+
+
+
+hive> CREATE TABLE user1(
+    > first_name STRING,
+    > last_name STRING,
+    > roll_no STRING,
+    > country STRING,
+    > state STRING)
+    > ROW FORMAT DELIMITED
+    > FIELDS TERMINATED BY ','
+    > STORED AS TEXTFILE;
+OK
+Time taken: 0.075 seconds
+
+
+2.Creating input file for dynamic partitioning:
+
+input file - user_info2
+
+Nikhil,Vemula,23
+Sunil,Dasari,32
+Nithin,Yarida,55
+Rakesh,Beesu,50
+Adam,Kumar,76
+Sohail,Tanvir,89
+Lovely,chadini,4
+
+
+3.Loading input file into user1 table:
+
+hive> LOAD DATA LOCAL INPATH '/home/training/Desktop/hiveinputs/user_info2' 
+    > INTO TABLE user1;
+Copying data from file:/home/training/Desktop/hiveinputs/user_info2
+Copying file: file:/home/training/Desktop/hiveinputs/user_info2
+Loading data to table hivedemo.user1
+OK
+Time taken: 0.189 seconds
+
+
+4.Setting of parameters for dynamic partitioning:
+
+
+hive> set hive.exec.dynamic.partition=true;
+hive> set hive.exec.dynamic.partition.mode=nonstrict;
+hive> set hive.exec.max.dynamic.partitions.pernode=20000;
+hive> set hive.exec.max.dynamic.partitions=20000;
+
+
+5.Retrieving data from partitioned table:
+
+We need to copy the file from user1 to partitioned table par_user and then retriving the data from it all together using insert and select statement in one hive statement.
+
+hive> INSERT OVERWRITE TABLE par_user
+    > PARTITION (country,state)
+    > SELECT first_name,last_name,roll_no,country,state
+    > FROM user1;
+Total MapReduce jobs = 2
+Launching Job 1 out of 2
+Number of reduce tasks is set to 0 since there's no reduce operator
+Starting Job = job_201803200739_0001, Tracking URL = http://localhost:50030/jobdetails.jsp?jobid=job_201803200739_0001
+Kill Command = /usr/lib/hadoop/bin/hadoop job  -Dmapred.job.tracker=localhost:8021 -kill job_201803200739_0001
+2018-03-20 12:18:20,789 Stage-1 map = 0%,  reduce = 0%
+2018-03-20 12:18:22,810 Stage-1 map = 100%,  reduce = 0%
+2018-03-20 12:18:23,826 Stage-1 map = 100%,  reduce = 100%
+Ended Job = job_201803200739_0001
+Ended Job = 1071326730, job is filtered out (removed at runtime).
+Moving data to: hdfs://localhost/tmp/hive-training/hive_2018-03-20_12-18-14_951_5853144392419389208/-ext-10000
+Loading data to table hivedemo.par_user partition (country=null, state=null)
+        Loading partition {country=__HIVE_DEFAULT_PARTITION__, state=__HIVE_DEFAULT_PARTITION__}
+Partition hivedemo.par_user{country=__HIVE_DEFAULT_PARTITION__, state=__HIVE_DEFAULT_PARTITION__} stats: [num_files: 1, num_rows: 0, total_size: 114]
+Table hivedemo.par_user stats: [num_partitions: 1, num_files: 1, num_rows: 0, total_size: 114]
+7 Rows loaded to par_user
+OK
+Time taken: 9.671 seconds
+
+
+
+
+6.Browsing the directory:
+
+Two partitions got created in the below hive warehouse path as the dataset has two countries and states.
+
+
+[training@localhost ~]$ hadoop fs -ls /user/hive/warehouse/hivedemo.db/par_user  
+Found 2 items
+drwxr-xr-x   - training supergroup          0 2018-03-20 11:57 /user/hive/warehouse/hivedemo.db/par_user/country=ca
+drwxr-xr-x   - training supergroup          0 2018-03-20 11:56 /user/hive/warehouse/hivedemo.db/par_user/country=us
+[training@localhost ~]$ hadoop fs -ls /user/hive/warehouse/hivedemo.db/user1  
+Found 1 items
+-rw-r--r--   1 training supergroup        114 2018-03-20 12:10 /user/hive/warehouse/hivedemo.db/user1/user_info2
+[training@localhost ~]$ hadoop fs -cat 
+[training@localhost ~]$ hadoop fs -cat /user/hive/warehouse/hivedemo.db/user1/user_info2
+Nikhil,Vemula,23
+Sunil,Dasari,32
+Nithin,Yarida,55
+Rakesh,Beesu,50
+Adam,Kumar,76
+Sohail,Tanvir,89
+Lovely,chadini,4
+
+
+===============
+Bucketing
+===============
+
+hive> CREATE TABLE input_table( 
+    > street STRING,                                                        
+    > city STRING,              
+    > zip INT,                  
+    > state STRING,             
+    > beds INT,                 
+    > baths INT,                
+    > sq_ft FLOAT,              
+    > type STRING,              
+    > price FLOAT               
+    > )
+    > ROW FORMAT DELIMITED      
+    > FIELDS TERMINATED BY '\t';
+OK
+Time taken: 0.046 seconds
+
+
+hive> LOAD DATA LOCAL INPATH '/home/training/Desktop/hiveinputs/realestate.csv'
+    > INTO 
+    > TABLE input_table;
+Copying data from file:/home/training/Desktop/hiveinputs/realestate.csv
+Copying file: file:/home/training/Desktop/hiveinputs/realestate.csv
+Loading data to table hivedemo.input_table
+OK
+Time taken: 0.167 seconds
+
+
+
+#set the bucketing properties
+
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=strict;
+set hive.exec.max.dynamic.partitions=20000;
+set hive.exec.max.dynamic.partitions.pernode=20000;
+set hive.enforce.bucketing=true; 
+
+
+
+#creating bucket table
+
+street STRING,
+zip INT,
+state STRING,
+beds INT,
+baths INT,
+sq_ft FLOAT,
+type STRING,
+price FLOAT)
+PARTITIONED BY(city STRING)
+CLUSTERED BY(street)
+INTO 4 BUCKETS
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ',';
+
+#query to retrieve data from bucketed table
+
+INSERT OVERWRITE TABLE bucket_table
+PARTITION(city)
+SELECT street,zip,state,beds,sq_ft,type,price,city
+FROM input_table;
+
+Total MapReduce jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 4
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapred.reduce.tasks=<number>
+Starting Job = job_201803200739_0002, Tracking URL = http://localhost:50030/jobdetails.jsp?jobid=job_201803200739_0002
+Kill Command = /usr/lib/hadoop/bin/hadoop job  -Dmapred.job.tracker=localhost:8021 -kill job_201803200739_0002
+2018-03-20 12:46:11,400 Stage-1 map = 0%,  reduce = 0%
+2018-03-20 12:46:14,420 Stage-1 map = 100%,  reduce = 0%
+2018-03-20 12:46:34,113 Stage-1 map = 100%,  reduce = 50%
+2018-03-20 12:46:41,225 Stage-1 map = 100%,  reduce = 58%
+2018-03-20 12:46:42,334 Stage-1 map = 100%,  reduce = 67%
+2018-03-20 12:46:44,381 Stage-1 map = 100%,  reduce = 100%
+Ended Job = job_201803200739_0002
+Loading data to table hivedemo.bucket_table partition (city=null)
+        Loading partition {city=ANTELOPE}
+        Loading partition {city=AUBURN}
+        Loading partition {city=CAMERON PARK}
+        Loading partition {city=CARMICHAEL}
+        Loading partition {city=CITRUS HEIGHTS}
+        Loading partition {city=COOL}
+        Loading partition {city=DIAMOND SPRINGS}
+        Loading partition {city=EL DORADO}
+        Loading partition {city=EL DORADO HILLS}
+        Loading partition {city=ELK GROVE}
+        Loading partition {city=ELVERTA}
+        Loading partition {city=FAIR OAKS}
+        Loading partition {city=FOLSOM}
+        Loading partition {city=FORESTHILL}
+        Loading partition {city=GALT}
+        Loading partition {city=GARDEN VALLEY}
+        Loading partition {city=GOLD RIVER}
+        Loading partition {city=GRANITE BAY}
+        Loading partition {city=GREENWOOD}
+        Loading partition {city=LINCOLN}
+        Loading partition {city=LOOMIS}
+        Loading partition {city=MATHER}
+        Loading partition {city=MEADOW VISTA}
+        Loading partition {city=NORTH HIGHLANDS}
+        Loading partition {city=ORANGEVALE}
+        Loading partition {city=PENRYN}
+        Loading partition {city=PLACERVILLE}
+        Loading partition {city=POLLOCK PINES}
+        Loading partition {city=RANCHO CORDOVA}
+        Loading partition {city=RANCHO MURIETA}
+        Loading partition {city=RIO LINDA}
+        Loading partition {city=ROCKLIN}
+        Loading partition {city=ROSEVILLE}
+        Loading partition {city=SACRAMENTO}
+        Loading partition {city=SHINGLE SPRINGS}
+        Loading partition {city=SLOUGHHOUSE}
+        Loading partition {city=WALNUT GROVE}
+        Loading partition {city=WEST SACRAMENTO}
+        Loading partition {city=WILTON}
+        Loading partition {city=city}
+Partition hivedemo.bucket_table{city=ANTELOPE} stats: [num_files: 4, num_rows: 0, total_size: 1418]
+Partition hivedemo.bucket_table{city=AUBURN} stats: [num_files: 4, num_rows: 0, total_size: 203]
+Partition hivedemo.bucket_table{city=CAMERON PARK} stats: [num_files: 4, num_rows: 0, total_size: 354]
+Partition hivedemo.bucket_table{city=CARMICHAEL} stats: [num_files: 4, num_rows: 0, total_size: 837]
+Partition hivedemo.bucket_table{city=CITRUS HEIGHTS} stats: [num_files: 4, num_rows: 0, total_size: 1496]
+Partition hivedemo.bucket_table{city=COOL} stats: [num_files: 4, num_rows: 0, total_size: 45]
+Partition hivedemo.bucket_table{city=DIAMOND SPRINGS} stats: [num_files: 4, num_rows: 0, total_size: 42]
+Partition hivedemo.bucket_table{city=EL DORADO} stats: [num_files: 4, num_rows: 0, total_size: 88]
+Partition hivedemo.bucket_table{city=EL DORADO HILLS} stats: [num_files: 4, num_rows: 0, total_size: 917]
+Partition hivedemo.bucket_table{city=ELK GROVE} stats: [num_files: 4, num_rows: 0, total_size: 4974]
+Partition hivedemo.bucket_table{city=ELVERTA} stats: [num_files: 4, num_rows: 0, total_size: 168]
+Partition hivedemo.bucket_table{city=FAIR OAKS} stats: [num_files: 4, num_rows: 0, total_size: 389]
+Partition hivedemo.bucket_table{city=FOLSOM} stats: [num_files: 4, num_rows: 0, total_size: 715]
+Partition hivedemo.bucket_table{city=FORESTHILL} stats: [num_files: 4, num_rows: 0, total_size: 35]
+Partition hivedemo.bucket_table{city=GALT} stats: [num_files: 4, num_rows: 0, total_size: 863]
+Partition hivedemo.bucket_table{city=GARDEN VALLEY} stats: [num_files: 4, num_rows: 0, total_size: 39]
+Partition hivedemo.bucket_table{city=GOLD RIVER} stats: [num_files: 4, num_rows: 0, total_size: 201]
+Partition hivedemo.bucket_table{city=GRANITE BAY} stats: [num_files: 4, num_rows: 0, total_size: 133]
+Partition hivedemo.bucket_table{city=GREENWOOD} stats: [num_files: 4, num_rows: 0, total_size: 46]
+Partition hivedemo.bucket_table{city=LINCOLN} stats: [num_files: 4, num_rows: 0, total_size: 2829]
+Partition hivedemo.bucket_table{city=LOOMIS} stats: [num_files: 4, num_rows: 0, total_size: 80]
+Partition hivedemo.bucket_table{city=MATHER} stats: [num_files: 4, num_rows: 0, total_size: 45]
+Partition hivedemo.bucket_table{city=MEADOW VISTA} stats: [num_files: 4, num_rows: 0, total_size: 44]
+Partition hivedemo.bucket_table{city=NORTH HIGHLANDS} stats: [num_files: 4, num_rows: 0, total_size: 876]
+Partition hivedemo.bucket_table{city=ORANGEVALE} stats: [num_files: 4, num_rows: 0, total_size: 470]
+Partition hivedemo.bucket_table{city=PENRYN} stats: [num_files: 4, num_rows: 0, total_size: 45]
+Partition hivedemo.bucket_table{city=PLACERVILLE} stats: [num_files: 4, num_rows: 0, total_size: 427]
+Partition hivedemo.bucket_table{city=POLLOCK PINES} stats: [num_files: 4, num_rows: 0, total_size: 119]
+Partition hivedemo.bucket_table{city=RANCHO CORDOVA} stats: [num_files: 4, num_rows: 0, total_size: 1210]
+Partition hivedemo.bucket_table{city=RANCHO MURIETA} stats: [num_files: 4, num_rows: 0, total_size: 126]
+Partition hivedemo.bucket_table{city=RIO LINDA} stats: [num_files: 4, num_rows: 0, total_size: 505]
+Partition hivedemo.bucket_table{city=ROCKLIN} stats: [num_files: 4, num_rows: 0, total_size: 684]
+Partition hivedemo.bucket_table{city=ROSEVILLE} stats: [num_files: 4, num_rows: 0, total_size: 2028]
+Partition hivedemo.bucket_table{city=SACRAMENTO} stats: [num_files: 4, num_rows: 0, total_size: 18345]
+Partition hivedemo.bucket_table{city=SHINGLE SPRINGS} stats: [num_files: 4, num_rows: 0, total_size: 40]
+Partition hivedemo.bucket_table{city=SLOUGHHOUSE} stats: [num_files: 4, num_rows: 0, total_size: 40]
+Partition hivedemo.bucket_table{city=WALNUT GROVE} stats: [num_files: 4, num_rows: 0, total_size: 42]
+Partition hivedemo.bucket_table{city=WEST SACRAMENTO} stats: [num_files: 4, num_rows: 0, total_size: 120]
+Partition hivedemo.bucket_table{city=WILTON} stats: [num_files: 4, num_rows: 0, total_size: 212]
+Partition hivedemo.bucket_table{city=city} stats: [num_files: 4, num_rows: 0, total_size: 25]
+Table hivedemo.bucket_table stats: [num_partitions: 40, num_files: 160, num_rows: 0, total_size: 41275]
+986 Rows loaded to bucket_table
+OK
+Time taken: 45.159 seconds
+
+
+
+#browse directory
+
+
+[training@localhost ~]$ hadoop fs -ls /user/hive/warehouse/hivedemo.db/bucket_table  
+Found 40 items
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=ANTELOPE
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=AUBURN
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=CAMERON PARK
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=CARMICHAEL
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=CITRUS HEIGHTS
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=COOL
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=DIAMOND SPRINGS
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=EL DORADO
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=EL DORADO HILLS
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=ELK GROVE
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=ELVERTA
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=FAIR OAKS
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=FOLSOM
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=FORESTHILL
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=GALT
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=GARDEN VALLEY
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=GOLD RIVER
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=GRANITE BAY
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=GREENWOOD
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=LINCOLN
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=LOOMIS
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=MATHER
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=MEADOW VISTA
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=NORTH HIGHLANDS
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=ORANGEVALE
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=PENRYN
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=PLACERVILLE
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=POLLOCK PINES
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=RANCHO CORDOVA
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=RANCHO MURIETA
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=RIO LINDA
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=ROCKLIN
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=ROSEVILLE
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=SACRAMENTO
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=SHINGLE SPRINGS
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=SLOUGHHOUSE
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=WALNUT GROVE
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=WEST SACRAMENTO
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=WILTON
+drwxr-xr-x   - training supergroup          0 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=city
+[training@localhost ~]$ hadoop fs -ls /user/hive/warehouse/hivedemo.db/bucket_table/city=ANTELOPE
+
+Found 4 items
+-rw-r--r--   1 training supergroup        305 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=ANTELOPE/000000_0
+-rw-r--r--   1 training supergroup        376 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=ANTELOPE/000001_0
+-rw-r--r--   1 training supergroup        310 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=ANTELOPE/000002_0
+-rw-r--r--   1 training supergroup        427 2018-03-20 12:46 /user/hive/warehouse/hivedemo.db/bucket_table/city=ANTELOPE/000003_0
+[training@localhost ~]$ 
+[training@localhost ~]$ hadoop fs -cat /user/hive/warehouse/hivedemo.db/bucket_table/city=ANTELOPE/000000_0
+8108 FILIFERA WAY,95843,\N,4,3.0,1768.0,\N
+4636 TEAL BAY CT,95843,\N,4,2.0,2160.0,\N
+4437 MITCHUM CT,95843,\N,3,2.0,1393.0,\N
+4844 CLYDEBANK WAY,95843,\N,3,2.0,1215.0,\N
+7921 DOE TRAIL WAY,95843,\N,5,3.0,3134.0,\N
+8636 LONGSPUR WAY,95843,\N,3,2.0,1670.0,\N
+7901 GAZELLE TRAIL WAY,95843,\N,4,2.0,1953.0,\N
