@@ -1,0 +1,479 @@
+Hive Data Definition Language (DDL)
+====================================
+
+Apache Hive is a data warehouse which built on top of Apache Hadoop for data query, summarization and analysis.
+Hive is SQL like interface.
+Hive documentation
+Hive Data Types
+Hive supports five types of data types. We can list those as below
+
+Numeric Types
+Date/Time Types
+String Types
+Misc Types
+Complex Types
+Decimal
+Float
+Double
+Creating a Database
+To create a database in hive we will use create database command which we use same like relational databases.
+create database bootcampdemo_retail_db_txt;
+It will create a DB directory over HDFS location under the warehouse. We can check our HDFS warehouse location.
+set hive.metastore.warehouse.dir;
+To locate database from HDFS we use Linux regular expression command
+hadoop fs -ls /apps/hive/warehouse/ | grep bootcampdemo_retail_db_txt
+To ignore the duplicate database or tables while creating we use “if not exists” like SQL.
+create database if not exists bootcampdemo_retail_db_txt;
+Switching between databases
+Use bootcampdemo_retail_db_txt;
+Creating Tables
+To create table use the below command
+create table demo (i int,s string,v varchar(3));
+To describe the table use below command
+desc demo;
+Inserting data in to table demo
+insert into demo values (1, "Hello", "World");
+In hive when we do Insert operation it will perform MapReduce to insert the data and to validate the data we can run a simple select command like SQL.
+select * from demo;
+Hive always stores its data in HDFS warehouse directory.
+We can locate and validate the data by performing some HDFS commands in hive shell as below commands
+dfs -ls /apps/hive/warehouse/bootcampdemo_retail_db_txt.db
+dfs -ls /apps/hive/warehouse/bootcampdemo_retail_db_txt.db/demo
+dfs -cat/apps/hive/warehouse/bootcampdemo_retail_db_txt.db/demo/00000_0
+Connecting to Database
+To connect to the MySQL hive metastore use below command.
+mysql -u hive -h gw01.itversity.com -p
+This will prompt for password give password as itversity
+use metastore;
+show tables;
+describe TBLS;
+select owner, tbl_name from TBLS where tb1_name = 'demo';
+describe DBS;
+To get the database name of a demo table we can use below query
+select tbl_name, name from TBLS join DBS on DBS.db_id = TBLS.db_id where tbl_name = 'demo';
+To get the columns name of a demo table we can use below query
+select c.*, t.tbl_name from COLUMNS_V2 c join TBLS t on c.cd_id =t.tbl_id where cd_id = 41887;
+To count the rows in hive we run the command
+select count(1) demo;
+
+
+
+
+
+
+Data Types
+primitive_type
+INT
+BOOLEAN
+DATE
+TIMESTAMP
+STRING
+VARCHAR
+array_type
+ARRAY < data_type >
+map_type
+MAP < primitive_type, data_type >
+struct_type
+STRUCT < col_name : data_type [COMMENT col_comment], ...>
+union_type
+UNIONTYPE < data_type, data_type, ... >  -- (Note: Available in Hive 0.7.0 and later)]
+Hive DDL Commands
+When we insert data into a hive table without any delimiter it will take ASCII null by default
+We can use Describe formatted to locate out table HDFS location directly
+DESCRIBE FORMATTED demo;
+To get the data from HDFS we can use Hadoop fs -get command
+hadoop fs -get hdfs://nn01.itversity.com/apps/hive/warehouse/bootcampdemo_retail_db_txt.db/demo
+To drop table use command Drop
+Drop demo;
+If inserted data has more than defined size, Hive will omit the extra data and stores the data for defined size. It won’t specify any warnings like in SQL.
+To know exact syntax of Hive create table by default
+show create table demo;
+Addigning delimiter as ‘,’ use the below syntax
+create table demo(
+i int
+s string
+v varchar(3))
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ',';
+Loading the Data
+Loading data from the external sources. We can load data from the local file system and HDFS.
+When we load data from the file it will run faster than inserting one row by using insert command.
+ Load data local inpath("/home/training/demo.txt") into demo;
+When we load the data which has wrong schema structure will be inserted into a table without any errors or warnings.
+It will just replace with “NULL” where the schema is not satisfied. But the data remain like the original file in HDFS
+We have data in lab under location data
+ls -ltr /data
+Query to get the default date which Hive engine support formate
+select current_date;
+Query to get the default timestamp which Hive engine support formate
+select current_timestamp;
+Creating a table for orders table with a delimiter as ‘,’
+Create table orders(
+order_id int,
+order_date timestamp,
+order_customer_id int,
+order_status string
+) ROW FORMAT DELIMITED FIELDS TERMINATED BY ',';
+Loading orders data into table orders
+load data local inpath '/data/retail_db/orders' into table orders;
+If we need to validate loaded data and we want to select limit data to use the command
+select * from orders limit 10;`
+
+
+Hive Data Manipulation Language (DML)
+=======================================
+
+DDL is an abbreviation for Data Definition Language. It is used to create and modify the structure of database objects in the database.
+DML is an abbreviation for Data Manipulation Language. It is used to retrieve, store, modify, delete, insert and update data in the database.
+
+To create CTAB (create table as select) table we can run the command
+usebootcampdemo_retail_db_txt;
+create table orders01 as select * from orders;
+It will create the new table with the same structure as the original table. But there might be some changes in the metadata of the table.
+Like we can see row format changed in the orders01 table.
+Creating a table with orc format
+create table orders_orc
+stored as orc
+as 
+select * from orders;
+By default orc format inherits the row format serde because it has to understand how to read the data and how to write the data.
+There are three ways to load the data into hive tables
+Insert Individual records
+Select data from other tables
+Load the data from the files
+Load table in Hive console
+Copy the files directly into HDFS location
+The truncate command will delete the data in the table but preserves the structure of the table
+Loading the data from the local file system
+There are two ways to load the data from the local file system, the first one is using put command and the other one is load command.
+
+Create table by using row format delimited by ‘,’
+CREATE TABLE `orders`(
+`order_id` int,
+`order_date` string,
+`order_customer_id` int,
+`order_status` string)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+Now let us copy data directly from HDFS location
+hadoop fs -put /data/retail_db/orders /apps/hive/warehouse/bootcampdemo_retail_db_txt/orders
+The number of files is 0 since we copied data from hdfs location directly but it is not updated metadata.
+Now let us see loading a local file into the table
+load data local inpath /data/retail_db/orders orders
+To append the same data into the same table we have to specify the file name
+hadoop fs -put /data/retail_db/orders /apps/hive/warehouse/bootcampdemo_retail_db_txt/orders
+If we do the same table by loading the data it will update the file name with a new file name.
+load data local inpath /data/retail_db/orders orders
+Original>part-00000_0
+New file>part-0000_copy_1
+To overwrite the data we can use the keyword ‘overwrite’
+load data local inpath /data/retail_db/orders overwrite into table orders
+To drop the table
+drop orders;
+Truncate will delete the data in the table and keeps the table structure
+truncate orders_orc;
+Inserting data into an existing table by overwriting the data
+insert overwrite table orders_orc
+select * from orders_stage;
+creating a table by using partitioned
+create table orders_partitioned(
+order_id int,
+order_customer_id int,
+order_status string,
+)partitioned by (order_date string)
+row format delimited fildes terminated by ',';
+Insert data into a partitioned table
+insert into table orders_partitioned partition(order_date) 
+select order_id,order_customer_id,order_status,order_date
+from orders_stage;
+
+Note:It will fail due to dynamic partition mode is not set to nonstrict. We have to set it to nonstrict mode to run and insert data into table
+
+set hive.exec.dynamic.partition.mode=nonstrict
+
+//Now run the insert command to insert into a partitioned table
+Now we can check the HDFS, it will create partitioned files based on date
+dfsw -ls /apps/hive/warehouse/bootcampdemo_retail_db_txt.db/orders_partitioned/order_date=2014-05-20*;
+If we read the files we can see only three fields since the date become part of the file name.
+
+
+
+Hive DDL and DML – Partitioning and Bucketing
+=============================================
+
+ucketing
+
+We will be providing the sudo code for altering the table in the link below
+“https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-AddPartitions”
+
+Alter the attributes of a table such as changing its table name, changing column names, adding columns, and deleting or replacing columns.
+Date manipulation function
+syntax :
+formatter.dateFormat = "MM/DD/YYYY"
+print(formatter.string(from: Date())) // 02/32/2017
+
+formatter.dateFormat = "MM/dd/YYYY"
+print(formatter.string(from: Date())) // 02/01/2017
+Create a partitioned table as below
+create table `orders_partitioned`(
+`order_id` int,
+`order_customer_id` int,
+`order_status` string)
+PARTITIONED BY (
+order_date int
+) ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ',';
+Alter Table/Partition/Column
+alter table orders_partitioned add partition (order_date=20130725);
+
+insert into table orders_partitioned partition(order_date)
+select order_id, order_customer_id, order_status,
+cast(date_format(order_date, 'YYYYMMDD') as int) order_date
+from orders_stage where order_date like '2013-07-25';
+Traditional partitioning in RDBMS
+Hive Partitions have a way to organize the tables into partitions by dividing tables into different parts based on partition keys.
+
+list partitioning
+hash  partitioning (Clustered By )  
+Example for partition table:
+
+create table state_part(District string,Enrolments string) PARTITIONED BY(state string);
+
+ Bucketing:
+Buckets in the hive are used in segregating of hive table-data into multiple files or directories. it is used for efficient querying.
+
+Example for the bucketed table:
+
+ create orders_bucketed (
+ order_id int,
+ order_date string,
+ order_status string,
+order_customer_id int
+)  clustered by (order_status) into 4 buckets
+ row format delimited fields terminated by  ', ' ;
+
+set hive.enforce.bucketing=true;
+insert into table orders_bucketed
+select * from orders01;
+
+
+HiveQL – Functions Overview
+============================
+
+
+RDBMS
+Fundamentally it is for mission-critical online transactional application
+Schema on write
+Support for indexes
+List, range, hash
+SQL
+Select or project the data
+Filtering (horizontal and vertical)
+Aggregations (sum, min, max, sd, variance, avg, mean)
+Sorting the data (global or based on a key)
+Ranking on the data (global or based on a key)
+Joins
+Set operations
+HIVE
+This is for offline batch data processing
+Schema on read
+No support for indexes
+Partitioning (list), bucketing
+Hive Functions
+To list the available functions in Hive use below command.
+show function;
+To get usage/description of the function
+describe function funtionname;
+Types of functions available in Hive
+String manipulations
+Case conversion: lower, upper, initcap
+select lower(order_status) from orders limit 10;
+Extracting substring: substr, split
+select substr("Hello world",3,3);
+select substr("Hello worls",-5);
+select substr(order_date, 1,10) from orders limit 10
+select split(order_date,' ')[0] from orders limit 10;
+Indexing function: instr
+To list the first occurrence of the substring
+select instr(order_date,'00')from orders limit 10;
+Concat function: concat
+select conct(2017,'-','02',-,'03');
+Trimming functions: ltrim, rrim, trim
+It will trim only spaces on the left side
+select ltrim("    Hello world");
+select trim(order_date) from orders where.length(trim(order_date) != length(order_date);
+Padding functions: lpad, rpad
+select concat(2017,'-',lpad(2,2,0),'-',lpad(3,2,0));
+Getting length: length
+Replacing characters or substring: regexp_replace, translate
+select regexp_replace(split(order_date, " ")[0], '-', '/') from orders limit 10;
+For replacing characters we can use the translate function
+select translate("hello world", "lo", "10");
+Date manipulation
+Current date – current_date, current_timestamp, to_date
+select current_date;
+select current_timestamp;
+select to_date(order_date) from orders limit 10;
+Arthematic functions – date_add, date_sub, datediff, months_between
+select date_add(current_date, -4), date_add(current_date, -1);
+select datediff("2018-06-15", "2018-02-10");
+select months_between("2018-06-15", "2018-02-10");
+Extraction function – year, month, date, next_date, trunc, last_day, day etc
+select year(current_date);
+select month(current_date);
+select day(current_date);
+select date(current_date);
+
+select trunc(current_date, 'MM');
+select trunc(current_date, 'YY');
+select last_day(current_date);
+Format function – date_format
+select distinct date_format(order_date 'YYYY') from orders limit 10;
+select date_format(current_date, 'dd');
+select date_format(current_date, 'DD');
+select date_format(current_timestamp, 'HH');
+select date_format(current_timestamp, 'mm');
+select date_format(current_timestamp, 'SS');
+select date_format(current_timestamp, 'ss');
+Unix timestamp to/from database timestamp conversion function
+to_unix_timestamp
+unix_timestamp
+from_unixtime
+select to_unix_timestamp(order_date,'YYYY-MM'), to_unix_timestamp(order_date) from orders limit 10;
+select unix_timestamp(current_timestamp);
+select from_unixtime(1356843600, 'YYYY-MM-dd');
+type conversion
+select * from orders where cast(substr(order_date,1,4) as int) = 2013 limit 10;
+
+
+HiveQL – Functions and Query Execution Life Cycle
+==================================================
+
+
+Hive Functions
+Miscellaneous
+nvl –   Writing a logic to get age based on birthdate if it is null
+emp - empno, empname, age, birth_date
+nvl(age,current_date - birth_date) - if(age is null)current_date - birth_date
+case
+select case when order_status in ("CLOSED", "COMPLETE") then "COMPLETED"
+when order_status in ("PAYMENT_REVIEW", "PENDING", "PENDING_PAYMENT", "PROCESSING") then "PENDING" 
+else "order_status" 
+end 
+from orders limit 10;
+Aggregate Functions
+select sum(order_items_subtotal) from order_items where order_item_order_id=2;
+Get top N orders per day
+
+We will take completed or closed orders
+SELECT * FROM orders WHERE order_status IN('COMPLETE','CLOSED'  LIMIT 10;
+
+SELECT o.order_date,o.order_id , sum(oi.order_item_subtotal) FROM orders o 
+JOIN order_items oi 
+ON o.order_id=oi.order_item_order_id
+WHERE order_status IN('COMPLETE','CLOSED')
+GROUP BY o.order_date, o.order_id
+ORDER BY o.order_date,order_revenue desc
+LIMIT 10;
+
+SELECT o.order_date,o.order_id ,oi.order_item_subtotal FROM orders o 
+JOIN order_items oi 
+ON o.order_id=oi.order_item_order_id
+WHERE order_status IN('COMPLETE','CLOSED') and o.order_id=4
+GROUP by o.order_date, o.order_id
+LIMIT 10;
+Analytics Functions
+To get order revenue by rank
+SELECT order_date,order_id,order_revenue,
+rank() OVER (PARTITION BY order_date ORDER BY order_revenue DESC)rnk FROM(
+SELECT o.order_date,o.order_id , sum(oi.order_item_subtotal) order_revenue
+FROM orders o
+JOIN order_items oi 
+ON o.order_id=oi.order_item_order_id
+WHERE order_status IN('COMPLETE','CLOSED')
+GROUP BY o.order_date, o.order_id
+)q 
+LIMIT 10;
+To get only top five order revenue by date
+When we run the below query it is running in three jobs when auto.convert.join is set to false if it is set to true it is running only two jobs
+Join and Aggregation done in one job when auto joins enabled.
+First job – Join
+Second job – Aggregated
+Third job – ordering the data
+SELECT * FROM (SELECT order_date,order_id,order_revenue,
+rank() OVER (PARTITION BY order_date ORDER BY order_revenue DESC)rnk FROM(
+SELECT o.order_date,o.order_id , sum(oi.order_item_subtotal) order_revenue
+FROM orders o
+JOIN order_items oi 
+ON o.order_id=oi.order_item_order_id
+WHERE order_status IN('COMPLETE','CLOSED')
+GROUP BY o.order_date, o.order_id
+)q)q1
+WHERE rnk<=5
+LIMIT 10;
+
+HiveQL SortBy And Compression
+=============================
+
+
+Create NYSE table and loading the data
+create table nyse_data(
+stockticker string,
+tradedate string,
+openprice float,
+highprice float,
+lowprice float,
+closeprice float,
+volume bigint,
+) row format delimited fields terminated by ',';
+
+//Loading the data into table from local
+
+load data local inpath '/data/nyse' into nyse_data;
+Validating file blocks in HDFS
+hdfs fsck /apps/hive/warehouse/dgadiraju_nyse.db/nyse_data
+To change the default number of reducers we can set it manually using below command
+set mapreduce.job.reduces=3
+For global sorting, We will use ORDER BY and it uses the number of final job’s reduce task as 1
+Sorting nyse data using order by in descending order
+select * from nyse_data
+ORDER BY tradedate, volume desc
+limit 10;
+Sorting nyse data using Sort by and creating table
+create table nyse_data_sorted
+as 
+select * from nyse_data 
+distribute BY tradedate sort by tradedate,volume desc;
+It is running only in one job.
+The data has been divided by using hash mode algorithm and divided the data into three buckets.
+The data have been sorted based on tradedate and volume.
+Compression
+Loading compressed data into a table
+truncate nyse_data;
+load data inpath local '/data/nyse_compressed' into nyse_data
+To list all the properties related to compressing we can use below command
+hive -e "set;" | grep compress
+The data will not be compressed unless we set the below property value to true.
+hive.exec.compress.output=true //default is false
+To check all compression algorithms supported in your environment, look into core-site.xml and go to the property “io.compression.codecs”.
+Source data might be compressed with right file format or uncompressed we can use load command.
+If we want to compress the data and want to use insert command and return the compressed format we have to set the below property.
+set hive.exec.compress.output=true
+To compress the insert data into Snappy we have to set the property and we have to give a fully qualified name, We can get it from the core-site.xml.
+set hive.exec.compress.output=true
+truncate table nyse_data_another;
+set mapreduce.output.compress.codec=org.apache.hadoop.io.compress.SnappyCodec
+
+insert into nyse_data_another;
+select * from nyse_data;
+Compression types
+Uncompressed, Splittable and non-splittable
+Size of the file will differ
+But files will be stored in a similar manner
+If the file size is greater than 128 MB, the number of blocks will be generated using file size divided by the block size
+Processing difference between Uncompressed, Splittable and non-splittable
+Will differ in the number of mappers
+Uncompressed and Splittable compression – the number of mappers will differ, but both leverage data locality using block size/split.
+Non Splittable compression will use only one mapper(no data locality).
+Splittable compressions – bzip2 and LZO
+Non-Splittable compressions – DEFLATE, gzip, LZ4, Snappy.
+
