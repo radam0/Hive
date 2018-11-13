@@ -1,0 +1,29 @@
+FromDate=20150405
+hive -hiveconf ODATE=$FromDate -f example1.hql
+
+=======
+run_d ,
+run_usr_id ,
+'${hiveconf:ODATE}' as last_update_date,
+'${hiveconf:ODATE}' as run_date,
+'${hiveconf:ODATE}' as run_user_id
+from nikhilDB.orders;
+
+
+also write the column run_date as string type
+
+beeline -u "${HIVE_URL}" `cat ${INIT_SCRIPT_NAME}` -hiveconf ODATE=$CONTROLM_ODATE -f "SCRIPT"  >> "$LOG_FILE_NM" 2>&1
+
+
+
+
+Yarn Logs
+==========
+
+yarn logs -applicationId application_1538183091482_780328 > application_1538183091482_780328.log
+yarn node -all -list  --display all nodes in cluster
+yarn node -all -states
+yarn application -kill <ApplicationId>
+yarn application -status application_1538183091482_780328
+yarn logs -applicationId <applicationId> -appOwner <user-who-started-the-application>
+yarn logs -applicationId <applicationId> -appOwner <user-who-started-the-application> -containerId <containerId> -nodeAddress <worker-node-address>
