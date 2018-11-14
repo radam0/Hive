@@ -27,3 +27,20 @@ yarn application -kill <ApplicationId>
 yarn application -status application_1538183091482_780328
 yarn logs -applicationId <applicationId> -appOwner <user-who-started-the-application>
 yarn logs -applicationId <applicationId> -appOwner <user-who-started-the-application> -containerId <containerId> -nodeAddress <worker-node-address>
+
+
+
+
+--null-string <null-string>				The string to be written for a null value for string columns
+--null-non-string <null-string>			The string to be written for a null value for non-string columns
+
+
+https://community.hortonworks.com/questions/77476/how-can-we-create-dynamic-partitions-in-hive-exter.html
+
+https://stackoverflow.com/questions/24238583/hive-dynamic-partitioning
+
+INSERT OVERWRITE will overwrite any existing data in the table or partition and INSERT INTO will append to the table or partition keeping the existing data (ref at apache.org).
+
+The INSERT INTO syntax appends data to a table. The existing data files are left as-is, and the inserted data is put into one or more new data files.
+
+The INSERT OVERWRITE syntax replaces the data in a table. Currently, the overwritten data files are deleted immediately; they do not go through the HDFS trash mechanism.
