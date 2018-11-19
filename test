@@ -44,3 +44,29 @@ INSERT OVERWRITE will overwrite any existing data in the table or partition and 
 The INSERT INTO syntax appends data to a table. The existing data files are left as-is, and the inserted data is put into one or more new data files.
 
 The INSERT OVERWRITE syntax replaces the data in a table. Currently, the overwritten data files are deleted immediately; they do not go through the HDFS trash mechanism.
+
+
+function Generate_hql
+{
+echo 'SqlParam="'$(cat $SCRIPT_BASE_NAME)'"'>$GEN_SCRIPT_NAME
+. $GEN_SCRIPT_NAME
+echo $SqlParam |tr " " "\n" >$GEN_SCRIPT_NAME
+}
+ODATE=181115
+userId=nikhil
+GEN_SCRIPT_NAME=Finalhql.hql
+SCRIPT_BASE_NAME=BaseHql.hql
+Generate_hql
+cat $GEN_SCRIPT_NAME
+hive -f $GEN_SCRIPT_NAME
+
+
+
+
+
+if [[ $SCRIPT_TYPE == "hive" && -z ${GEN_SCRIPT_NAME} ]]
+    then
+	echo 'SqlParam="'$(cat $SCRIPT_BASE_NAME)'"'>$SCRIPT
+		. $SCRIPT
+		echo $SqlParam |tr " " "\n" >$SCRIPT
+	fi;
