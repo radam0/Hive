@@ -70,3 +70,25 @@ if [[ $SCRIPT_TYPE == "hive" && -z ${GEN_SCRIPT_NAME} ]]
 		. $SCRIPT
 		echo $SqlParam |tr " " "\n" >$SCRIPT
 	fi;
+
+
+
+
+
+
+=============================================================================
+We cannot write --delete-target-dir and  --append both at a time
+they are mutually exclusive subsets
+
+--delete-target-dir    it deletes the existed directory
+--append               it appends to the existing directory
+
+If you get the error as output directory exists already
+use argument
+--delete-target-dir
+
+
+
+when we use --query we should use --target-dir instead of --warehouse-dir
+when we use --query we should use --split-by
+and \$CONDITIONS   is mandatory
