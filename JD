@@ -1,0 +1,83 @@
+Top Three Skills:
+
+
+1.Java (they prefer candidates who or open to other languages or consider themselves language agnostic))
+2. Restful API / Microservices
+3.Spark & Kafka
+4.Agile
+
+
+
+Job Description:
+
+ 
+
+We're looking for collaborative and energetic people to participate in building enterprise data analytic solutions and software. The responsibilities of the role include: 
+• Familiarity with data management concepts -- data modeling, effectively organizing large data volumes; both structured and unstructured, data quality, data security, etc.
+• Experience in the Hadoop ecosystem.
+o Leverage Hadoop ecosystem knowledge to design, and develop capabilities to deliver our solutions using Spark, Scala, Python, Hive, Oozie, Kafka, NiFi and other things in the Hadoop ecosystem. 
+o MongoDB on the NoSQL side
+• Experience with RDBMS systems, particularly Oracle 11/12g (Exadata would be a +)
+• Bash Shell scripting experience.
+• Experience in working in Agile (SAFe) 
+
+
+
+This developer should be very strong in PySpark development, Spark development, and Python development, and should be capable of building models, 
+pulling data, and developing algorithms and data solutions for their data scientist teams. 
+
+
+
+ransamerica is in need of a Big Data developer for a 6 month to 1 year stint. 
+This individual would work as a developer on our Big Data Operations team, focusing initially on an effort to convert existing processes to Spark.
+
+
+
+These Big Data Developers will be brought in to work on the Integration Channel within our client Data Integration initiative. 
+These developers will be heavily focused on the Spark api’s, Spark programming language, and SparkSQL to write the integration code
+
+Experience in building dashboards with real-time data
+
+
+
+Required Skills:
+* 8+ years overall hands on development experience is preferred.
+* Expert level on Apache / Confluent distribution of Kafka.
+* Expert level on stream processing using Kafka and Kafka Connect.
+
+
+
+
+Responsibilities
+#################
+
+
+* Provide expertise in Kafka brokers, zookeepers, KSQL, KStream and Kafka Control center.
+* Provide expertise and hands on experience working on Kafka connect using schema registry in a very high volume environment (~900 Million messages).
+* Provide expertise and hands on experience working on AvroConverters, JsonConverters, StringConverters.
+* Provide expertise and hands on experience working on Kafka connectors such as MQ connectors, Elastic Search connectors, JDBC connectors, File stream connector, JMS source connectors, Tasks, Workers, converters, Transforms.
+* Provide expertise and hands on experience on custom connectors using the Kafka core concepts and API.
+* Working knowledge on Kafka Rest proxy.
+* Ensure optimum performance, high availability and stability of solutions
+* Create topics, setup redundancy cluster, deploy monitoring tools, alerts and has good knowledge of best practices.
+* Create stubs for producers, consumers and consumer groups for helping onboard applications from different languages/platforms.
+* Use automation tools like provisioning using Docker, Jenkins and Udeploy.
+* Ability to perform data related benchmarking, performance analysis and tuning.
+Strong skills in In-memory applications, Database Design, Data Integration.
+* Strong Java background with Spring Modules, Spring Boot.
+* Strong working experience in UNIX environment
+
+
+Looking for someone who worked on Kafka based ingestion pipelines
+
+
+- Apache / Confluent distribution of Kafka. 
+- Stream processing using Kafka and Kafka Connect. 
+
+
+
+Work in a scaled Agile environment accountable to deliver results in sprints.
+
+Experience with messaging/streaming/complex event processing tooling and frameworks such as Kinesis, Kafka, Spark Streaming
+
+
